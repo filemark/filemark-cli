@@ -1,0 +1,41 @@
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+    ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: linux
+        goarch: arm
+        goarm: 7
+      - goarm: mips64
+        gomips: hardfloat
+    # Run upx after build finished
+    hooks:
+      post: ./upx.sh
+
+archives:
+  - name_template: "filemark-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      amd64: x86_64
+
+project_name: filemark-cli
+
+# Check https://goreleaser.com/customization/homebrew/
+# brews:
+#  - homepage: 'https://github.com/filemark/filemark-cli'
+#    folder: Formula
+#    tap:
+#      owner: filemark
+#      name: filemark-cli
