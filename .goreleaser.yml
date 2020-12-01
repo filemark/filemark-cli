@@ -21,9 +21,6 @@ builds:
         goarm: 7
       - goarm: mips64
         gomips: hardfloat
-    # Run upx after build finished
-    hooks:
-      post: ./upx.sh
 
 archives:
   - name_template: "filemark-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
