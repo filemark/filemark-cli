@@ -8,7 +8,8 @@ on:
         required: true
 
 jobs:
-  build:
+  release:
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -32,8 +33,9 @@ jobs:
 
       - name: Release
         uses: goreleaser/goreleaser-action@v2
+        if: startsWith(github.ref, 'refs/tags/${{ github.event.inputs.version }}')
         with:
-          version: ${{ github.event.inputs.version }}
+          version: latest
           args: -f .goreleaser.yml release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
