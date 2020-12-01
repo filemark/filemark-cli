@@ -1,0 +1,63 @@
+name: Filemark Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'v*.*.* tag'
+        required: true
+
+jobs:
+  release:
+    name: Filemark Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2
+
+      - name: Make tag
+        run: |
+          git tag ${{ github.event.inputs.version }}
+          git push --tags
+
+      - name: Checkout tag
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+
+      - name: Build
+        run: |
+          make build-for-production ${{ github.event.inputs.version }}
+
+      - name: Assemble
+        run: |
+          mkdir deployer
+          mv filemark-${{ github.event.inputs.version }} deployer/filemark-${{ github.event.inputs.version }}
+          mv app-config.yaml deployer/app-config.yaml
+          mv deploy.sh deployer/deploy.sh
+
+      - name: Publish
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          port: ${{ secrets.VM_PORT }}
+          key: ${{ secrets.DEPLOYER_KEY }}
+          source: "deployer/*"
+          target: "/home/deployer"
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.DEPLOYER_KEY }}
+          port: ${{ secrets.VM_PORT }}
+          script: /home/deployer/deploy.sh
+          

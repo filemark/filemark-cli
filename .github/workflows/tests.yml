@@ -1,0 +1,23 @@
+name: Filemark Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+
+      - name: Checkout main
+        uses: actions/checkout@v2
+
+      - name: Test
+        run: make test
